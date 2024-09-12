@@ -2,7 +2,7 @@ class RecintosZoo {
   analisaRecintos(animal, quantidade) {
     this.animal = animal;
     this.quantidade = quantidade;
-
+  
     let data = `
     {
         "recintos": [
@@ -21,80 +21,61 @@ class RecintosZoo {
             {"especie": "HIPOPOTAMO", "tamanho": 4, "bioma": "savana ou rio", "carnivoro" : false}
         ]
     }`;
-    const dataObj = JSON.parse(data);
-    // console.log(dataObj);
-    if (!dataObj.animais.includes(animal)) {
-      console.log(`{ erro: "Animal inválido" }`);
-      return { erro: "Animal inválido" };
-    } else if (quantidade <= 0) {
-      console.log("Quantidade inválida");
-      return { erro: "Quantidade inválida" };
-    }
     function posicaoAnimal(animal) {
-      return dataObj.animais.especie.indexOf(animal);
+      return dataObj.animais.findIndex(
+        (a) => a.especie.toLowerCase() === animal.toLowerCase()
+      );
     }
+
     function biomaAnimal(posicao) {
       return dataObj.animais[posicao].bioma;
     }
+
     function tamanhoAnimal(animal) {
       return dataObj.animais[posicaoAnimal(animal)].tamanho;
     }
-    function checarCarnivoro(animal) {
-      return dataObj.animais[posicaoAnimal(animal)].carnivoro;
-    }
-    function checarAnimaisnoRecinto(animal) {
-      // acho que isso ta errado
-      return dataObj.recintos[dataObj.animais[posicaoAnimal()]];
-    }
-    function checarEspacoTotal(animal) {
+
+    function checarEspacos(animal) {
       const posicao = posicaoAnimal(animal);
       const bioma = biomaAnimal(posicao);
-      return dataObj.recintos[dataObj.recintos.indexOf(bioma)].total;
+      const recintosViaveis = dataObj.recintos
+        .filter(
+          (r) =>
+            r.bioma.includes(bioma) && r.espaco_livre >= tamanhoAnimal(animal)
+        )
+        .map(
+          (r) =>
+            `Recinto ${r.Recinto} (espaço livre: ${r.espaco_livre} total: ${r.total})`
+        );
+      return recintosViaveis;
     }
-    function checarEspaco(animal) {
-      const posicao = posicaoAnimal(animal);
-      const bioma = biomaAnimal(posicao);
-      return dataObj.recintos[dataObj.recintos.indexOf(bioma)].espaco_livre;
+
+    const dataObj = JSON.parse(data);
+
+    if (posicaoAnimal(animal) === -1) {
+      return { erro: "Animal inválido", recintosViaveis: null };
+    } else if (quantidade <= 0) {
+      return { erro: "Quantidade inválida", recintosViaveis: null };
     }
-    function gerenciadorDeRecintosViaveis(animal, quantidade) {
-      if (
-        tamanhoAnimal(animal) > checarEspaco(animal) ||
-        checarEspaco(animal) == 0
-      ) {
-        console.log("Não há recinto viável");
-        return "Não há recinto viável";
+
+    const recintosViaveis = checarEspacos(this.animal);
+
+    if (this.animal == "MACACO"){
+      if (this.quantidade >= 10) {
+        return { erro: "Não há recinto viável", recintosViaveis: null };
       }
-      if (checarCarnivoro(animal)) {
-        for (let i = 0; i <= dataObj.recintos.length; i++) {
-          if (
-            i.endsWith(animal) &&
-            checarEspaco(animal >= tamanhoAnimal(animal))
-          ) {
-            dataObj.recintos.push({
-              ...dataObj,
-              animais_existentes: `${quantidade} + ${animal}`,
-            });
-          }
-        }
-      } else if (animal == "MACACO") {
-        if (
-          checarEspaco(animal) != "vazio" &&
-          tamanhoAnimal(animal) +
-            checarEspaco(animal < checarEspacoTotal(animal))
-        ) {
-          dataObj.recintos.push({
-            ...dataObj, animais_existentes: `${quantidade} + ${animal}`
-          })
-        } else {
-            console.log("Não há recinto viáve");
-            return { erro: "Não há recinto viáve"};
-        }
-      }
+      return {recintosViaveis}; 
     }
+
+    if (recintosViaveis.length === 0) {
+      return {
+        erro: null,
+        recintosViaveis: recintosViaveis.slice(0, this.quantidade),
+      };
+    }
+
+    return { recintosViaveis, erro: null };
   }
 }
-
-// apenas para testar //
-const resultado = new RecintosZoo().analisaRecintos("chimpaze", 2);
 
 export { RecintosZoo as RecintosZoo };
